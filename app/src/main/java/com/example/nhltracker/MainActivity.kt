@@ -10,6 +10,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import android.os.Bundle
 import android.view.Gravity
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 
 // dynamic textview
 import android.widget.LinearLayout
@@ -42,7 +43,8 @@ class MainActivity : AppCompatActivity() {
         // creating TextView programmatically
         val linearLayout = findViewById<LinearLayout>(R.id.linear_main)
 
-        val currentBGColor = R.color.dataTextBGColor2
+        var currentBGColor = R.color.dataTextBGColor2
+        var tvBackgroundLight = false
 
         for ( prop in Schedule::class.memberProperties) {
             val itemJSON = prop
@@ -52,16 +54,22 @@ class MainActivity : AppCompatActivity() {
             //textView.gravity = Gravity.CENTER
             textView.setTextColor(resources.getColor(R.color.dataTextColor))
 
-            val cd = textView.background as ColorDrawable
+            //val cd = textView.background as ColorDrawable
 
-            if ( cd.color == R.color.dataTextBGColor1) {
-                textView.setBackgroundColor(resources.getColor(R.color.dataTextBGColor2))
+            // Alternate BG color
+            if ( tvBackgroundLight ) {
+                currentBGColor = R.color.dataTextBGColor2
+                tvBackgroundLight = false
             }
             else {
-                textView.setBackgroundColor(resources.getColor(R.color.dataTextBGColor2))
+                currentBGColor = R.color.dataTextBGColor1
+                tvBackgroundLight = true
             }
 
+            textView.setBackgroundResource(currentBGColor)
+
             textView.text = "${prop.name}: ${prop.get(schedule)}"
+
             // Add TextView to LinearLayout
             linearLayout?.addView(textView)
 
