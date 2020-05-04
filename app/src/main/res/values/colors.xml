@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#534F4F</color>
+    <color name="colorPrimaryDark">#000000</color>
+    <color name="startupTextColor">#DFDFDF</color>
+    <color name="colorAccent">#D81B60</color>
+    <color name="dataTextColor">#F7F2F2</color>
+    <color name="dataTextBGColor1">#252424</color>
+    <color name="dataTextBGColor2">#5A5757</color>
+</resources>

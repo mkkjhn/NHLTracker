@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimaryDark"
+    tools:context=".StartupActivity">
+
+    <ImageView
+        android:id="@+id/nhl_logo"
+        android:layout_width="117dp"
+        android:layout_height="152dp"
+        android:foregroundGravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.25"
+        app:srcCompat="@drawable/ic_nhl_shield_logo" />
+
+    <TextView
+        android:id="@+id/textAppName"
+        android:layout_width="176dp"
+        android:layout_height="59dp"
+        android:fontFamily="@font/aldrich"
+        android:gravity="center"
+        android:text="tracker"
+        android:textSize="30dp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="@+id/nhl_logo"
+        app:layout_constraintStart_toStartOf="@+id/nhl_logo"
+        app:layout_constraintTop_toBottomOf="@+id/nhl_logo" />
+
+    <TextView
+        android:id="@+id/textInfo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="collecting data"
+        android:fontFamily="@font/aldrich"
+        android:gravity="center"
+        android:textColor="@color/startupTextColor"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textAppName" />
+</androidx.constraintlayout.widget.ConstraintLayout>
