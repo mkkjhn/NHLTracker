@@ -1,5 +1,6 @@
 package com.example.nhltracker
 
+import android.graphics.Typeface
 import android.graphics.drawable.ColorDrawable
 import androidx.appcompat.app.AppCompatActivity
 import com.google.gson.Gson
@@ -8,16 +9,18 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
 import kotlinx.android.synthetic.main.activity_main.*
 import android.os.Bundle
+import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+import android.widget.*
 
 // dynamic textview
-import android.widget.LinearLayout
-import android.widget.TextView
-import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.marginTop
+import androidx.core.widget.TextViewCompat
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.google.gson.JsonArray
 import com.google.gson.JsonParser
 import org.json.JSONArray
@@ -35,26 +38,32 @@ class MainActivity : AppCompatActivity() {
         var gson = Gson()
         var schedule = gson.fromJson(scheduleJSON, Schedule::class.java)
 
-
-        // denzil
-        //val scheduleJSON = intent.getStringExtra("schedule")
-        //val objects = listOf<Schedule>()
-
         // creating TextView programmatically
         val linearLayout = findViewById<LinearLayout>(R.id.linear_main)
+        //val constraintLayout = findViewById<ConstraintLayout>(R.id.constraint_main)
 
         var currentBGColor = R.color.dataTextBGColor2
         var tvBackgroundLight = false
 
         for ( prop in Schedule::class.memberProperties) {
+
             val itemJSON = prop
-            //println("${prop.name} = ${prop.get(schedule)}")
 
             val textView = TextView(this)
-            //textView.gravity = Gravity.CENTER
-            textView.setTextColor(resources.getColor(R.color.dataTextColor))
 
-            //val cd = textView.background as ColorDrawable
+            // Add TextView to LinearLayout
+            linearLayout?.addView(textView)
+            //constraintLayout?.addView(textView)
+
+            textView.gravity = Gravity.CENTER_VERTICAL
+            textView.setTextColor(resources.getColor(R.color.dataTextColor))
+            textView.text = "${prop.name}: ${prop.get(schedule)}"
+            textView.layoutParams.height = 140
+            textView.typeface = ResourcesCompat.getFont(this, R.font.aldrich)
+
+            TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(textView,
+                12, 16, 1,
+                TypedValue.COMPLEX_UNIT_SP)
 
             // Alternate BG color
             if ( tvBackgroundLight ) {
@@ -67,34 +76,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             textView.setBackgroundResource(currentBGColor)
-
-            textView.text = "${prop.name}: ${prop.get(schedule)}"
-
-            // Add TextView to LinearLayout
-            linearLayout?.addView(textView)
-
         }
-        /*
-        val sList = listOf(schedule)
-
-        for (i in sList) {
-            val (name, value) = i
-            println("ITEROINTI ALKAA")
-            println(name)
-            println(value)
-        }
-        val (
-            copyright,
-            totalItems,
-            totalEvents,
-            totalGames,
-            totalMatches,
-            wait,
-            dates
-        ) = schedule
-        */
-
-
 
         // Menee väärin, yksi kerrallaan alekkain, nyt ottaa ilmeisesti kaikki kerralla
         /*
@@ -125,7 +107,7 @@ data class Schedule(
     val totalGames : Int,
     val totalMatches : Int,
     val wait : Int,
-    val dates : Array<String>
+    val dates : List<String>
 )
 
 @Suppress("UNCHECKED_CAST")
