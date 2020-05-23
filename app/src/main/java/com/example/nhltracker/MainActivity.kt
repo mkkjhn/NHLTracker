@@ -1,102 +1,117 @@
 package com.example.nhltracker
 
-import android.graphics.Typeface
-import android.graphics.drawable.ColorDrawable
+// dynamic textview
+
+import android.content.Context
+import android.graphics.Color
+import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
+import android.view.View
+import android.view.animation.Animation
+import android.view.animation.RotateAnimation
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
 import com.google.gson.Gson
-import kotlin.reflect.KCallable
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import java.net.URL
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
-import kotlinx.android.synthetic.main.activity_main.*
-import android.os.Bundle
-import android.util.TypedValue
-import android.view.Gravity
-import android.view.ViewGroup
-import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-import android.widget.*
 
-// dynamic textview
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.content.res.ResourcesCompat
-import androidx.core.view.marginTop
-import androidx.core.widget.TextViewCompat
-import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-import com.google.gson.JsonArray
-import com.google.gson.JsonParser
-import org.json.JSONArray
 
 class MainActivity : AppCompatActivity() {
+
+    private val gson = Gson()
+    lateinit var scheduleJSON : String
+    lateinit var schedule : Schedule
+    lateinit var appContext : Context
+    lateinit var linearLayout: LinearLayout
+    lateinit var listSchedule: ListView
+    lateinit var textView: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Display the toolbar
+        setSupportActionBar(findViewById(R.id.toolbar))
+
+        appContext = applicationContext
+
         // Get data from StartupActivity
-        val scheduleJSON = intent.getStringExtra("schedule")
+        scheduleJSON = intent.getStringExtra("schedule")
+        schedule = gson.fromJson(scheduleJSON, Schedule::class.java)
 
-        // Display data
-        var gson = Gson()
-        var schedule = gson.fromJson(scheduleJSON, Schedule::class.java)
+        // for creating TextViews programmatically, not in use
+        linearLayout = findViewById<LinearLayout>(R.id.linear_main)
+        listSchedule = findViewById(R.id.scheduleListView) as ListView
 
-        // creating TextView programmatically
-        val linearLayout = findViewById<LinearLayout>(R.id.linear_main)
-        //val constraintLayout = findViewById<ConstraintLayout>(R.id.constraint_main)
+        textView = findViewById(R.id.rowx)
+        textView.visibility = View.GONE
+        textView.typeface = ResourcesCompat.getFont(appContext, R.font.aldrich)
 
-        var currentBGColor = R.color.dataTextBGColor2
-        var tvBackgroundLight = false
+    }
 
-        for ( prop in Schedule::class.memberProperties) {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
 
-            val itemJSON = prop
-
-            val textView = TextView(this)
-
-            // Add TextView to LinearLayout
-            linearLayout?.addView(textView)
-            //constraintLayout?.addView(textView)
-
-            textView.gravity = Gravity.CENTER_VERTICAL
-            textView.setTextColor(resources.getColor(R.color.dataTextColor))
-            textView.text = "${prop.name}: ${prop.get(schedule)}"
-            textView.layoutParams.height = 140
-            textView.typeface = ResourcesCompat.getFont(this, R.font.aldrich)
-
-            TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(textView,
-                12, 16, 1,
-                TypedValue.COMPLEX_UNIT_SP)
-
-            // Alternate BG color
-            if ( tvBackgroundLight ) {
-                currentBGColor = R.color.dataTextBGColor2
-                tvBackgroundLight = false
+    // Menu actions
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Handle item selection
+        return when (item.itemId) {
+            R.id.action_refresh -> {
+                onResume()
+                true
             }
-            else {
-                currentBGColor = R.color.dataTextBGColor1
-                tvBackgroundLight = true
-            }
+            R.id.action_settings -> {
 
-            textView.setBackgroundResource(currentBGColor)
+                // settings or statistics, whatever is available in the api
+                runOnUiThread() {
+                    Toast.makeText(
+                        applicationContext, "no implementation", Toast.LENGTH_SHORT
+                    ).show()
+                }
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    // Refresh screen
+    override fun onResume() {
+        super.onResume()
+        var resultJSON = ""
+
+        GlobalScope.launch { // launch a new coroutine in background and continue
+
+            try {
+                resultJSON =
+                    URL("https://statsapi.web.nhl.com/api/v1/schedule").readText()
+
+            } catch (e: Exception) {
+            }
+            runOnUiThread(Runnable {
+                if (resultJSON == "") {
+                    Toast.makeText(
+                        applicationContext, "data connection failed", Toast.LENGTH_SHORT
+                    ).show()
+                }
+                else {
+                    Toast.makeText(
+                        applicationContext, "data retrieved", Toast.LENGTH_SHORT
+                    ).show()
+                }
+            })
         }
 
-        // Menee väärin, yksi kerrallaan alekkain, nyt ottaa ilmeisesti kaikki kerralla
-        /*
-        for ((a) in listOf(schedule)) {
-            val textView = TextView(this)
-            textView.layoutParams = ConstraintLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-            textView.gravity = Gravity.CENTER
-            textView.setTextColor(resources.getColor(R.color.dataTextColor))
-            textView.setBackgroundColor(resources.getColor(R.color.dataTextBGColor))
-            textView.text = "$a"
-            // Add TextView to LinearLayout
-            linearLayout?.addView(textView)
-        }
-        */
-
-        //textView.setOnClickListener { Toast.makeText(this@MainActivity, R.string.clicked_on_me, Toast.LENGTH_LONG).show() }
-
+        schedule = gson.fromJson(scheduleJSON, Schedule::class.java)
+        displayJsonOnScreen(appContext, linearLayout, schedule, listSchedule, textView)
     }
 }
 
@@ -110,11 +125,67 @@ data class Schedule(
     val dates : List<String>
 )
 
-@Suppress("UNCHECKED_CAST")
-fun <R> readInstanceProperty(instance: Any, propertyName: String): R {
-    val property = instance::class.memberProperties
-        // don't cast here to <Any, R>, it would succeed silently
-        .first { it.name == propertyName } as KProperty1<Any, *>
-    // force a invalid cast exception if incorrect type here
-    return property.get(instance) as R
+fun displayJsonOnScreen(appContext: Context, linearLayout : LinearLayout, schedule: Schedule, listSchedule : ListView, textView: TextView) {
+
+    var list = ArrayList<String>()
+
+    var adapter
+            = ArrayAdapter(appContext, R.layout.row, list)
+    listSchedule.adapter = adapter
+
+    var i = 0
+    for ( prop in Schedule::class.memberProperties) {
+
+        list.add("${prop.name}: ${prop.get(schedule)}")
+
+        listSchedule.alpha = 0.70F
+        adapter.notifyDataSetChanged()
+
+/*
+        //var currentBGColor = R.color.dataTextBGColor2
+        //var tvBackgroundLight = false
+        //i++
+        // TO BE CONTINUED..
+        //adapter.add(textView.text.toString())
+        //adapter.getView(i, textView, listSchedule)
+
+        var tv = listSchedule?.getChildAt(i)
+        if (tv is TextView) {
+            tv.typeface = ResourcesCompat.getFont(appContext, R.font.aldrich)
+        }
+
+        //textView.setTextColor(appContext.getResources().getColor(R.color.dataTextColor))
+        //textView.typeface = ResourcesCompat.getFont(appContext, R.font.aldrich)
+
+        // Dynamically control size of textview
+        TextViewCompat.setAutoSizeTextTypeUniformWithConfiguration(textView,
+            20, 26, 1,
+            TypedValue.COMPLEX_UNIT_SP)
+
+        //textView.id = i
+        //println(i)
+        //textView.gravity = Gravity.CENTER_VERTICAL
+        //adapter.getItem(i).gravity = Gravity.CENTER_VERTICAL
+        //
+        //adapter.getItem(i).setTextColor(appContext.getResources().getColor(R.color.dataTextColor))
+        //
+        //adapter.getItem(i).text = "${prop.name}: ${prop.get(schedule)}"
+        //textView.layoutParams.height = 140
+        //textView.typeface = ResourcesCompat.getFont(appContext, R.font.aldrich)
+        //adapter.getItem(i).typeface = ResourcesCompat.getFont(appContext, R.font.aldrich)
+
+        // Alternate BG color, no effect in this version
+        if ( tvBackgroundLight ) {
+            currentBGColor = R.color.dataTextBGColor2
+            tvBackgroundLight = false
+        }
+        else {
+            currentBGColor = R.color.dataTextBGColor1
+            tvBackgroundLight = true
+        }
+
+        textView.setBackgroundResource(currentBGColor)
+*/
+    }
+    linearLayout.invalidate()
 }

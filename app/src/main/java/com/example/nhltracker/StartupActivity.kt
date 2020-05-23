@@ -5,6 +5,7 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Intent
 import android.os.Bundle
+import android.os.Looper
 import kotlinx.coroutines.*
 import android.view.View
 import android.widget.ImageView
@@ -26,25 +27,36 @@ class StartupActivity : AppCompatActivity() {
         text = findViewById<TextView>(R.id.textAppName)
 
         var resultJSON = ""
+
         // Retrieve data from API
         GlobalScope.launch { // launch a new coroutine in background and continue
-
             try {
                 resultJSON =
                     URL("https://statsapi.web.nhl.com/api/v1/schedule").readText()
                 //println(resultJSON) // print after delay
             }
             catch (e : Exception){
-                Toast.makeText(
-                    applicationContext, "data fetch failed", Toast.LENGTH_LONG).show()
             }
             delay(5500L) // non-blocking delay for 1 second (default time unit is ms)
+
+            runOnUiThread(Runnable {
+                if (resultJSON == "") {
+                    Toast.makeText(
+                        applicationContext, "data connection failed", Toast.LENGTH_SHORT
+                    ).show()
+                }
+                else {
+                    Toast.makeText(
+                        applicationContext, "data retrieved", Toast.LENGTH_SHORT
+                    ).show()
+                }
+            })
+
             // Switch activity to display data
             val intent = Intent(applicationContext, MainActivity::class.java)
             intent.putExtra("schedule", resultJSON)
             startActivity(intent)
         }
-
         // Store data to a collection or DB
         fadeAnimation()
     }
@@ -55,13 +67,11 @@ class StartupActivity : AppCompatActivity() {
         val fadeOutLogo = ObjectAnimator.ofFloat(logo, View.ALPHA, 1.0f, 0.0f)
         val fadeOutText = ObjectAnimator.ofFloat(text, View.ALPHA, 1.0f, 0.0f)
 
-        fadeInLogo.setDuration(2000)
-        fadeOutLogo.setDuration(2000)
-        fadeInText.setDuration(2000)
-        fadeOutText.setDuration(2000)
-        //fadeInLogo.repeatCount = 2
-        //fadeOutLogo.repeatCount = 2
-        //fadeInText.repeatCount = 2
+        fadeInLogo.duration = 2000
+        fadeOutLogo.duration = 2000
+        fadeInText.duration = 2000
+        fadeOutText.duration = 2000
+
         //fadeOutText.repeatCount = 2
 
         var anim = AnimatorSet()

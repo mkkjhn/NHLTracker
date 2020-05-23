@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">NHL Tracker</string>
+    <string name="refresh">"[refresh]"</string>
+    <string name="tracker">tracker</string>
+    <string name="collecting_data">collecting data</string>
+    <string name="nhl_logo">nhl logo</string>
+    <string name="menu_refresh">Refresh</string>
+    <string name="settings">Settings</string>
 </resources>
